@@ -24,41 +24,25 @@ export default {
   },
   methods: {
       setMapCenter(meeting){
-     //   debugger
      var self = this
             if (meeting){
-
                 var m = this.markers.filter(function(x){
                     return x.title == meeting.location
                 })[0]
-                console.log(`found marker for ${m.name}`)
-                //      this.map.setCenter(m.getPosition());
-                //  map.setCenter(new google.maps.LatLng(lat, lng));
-                //    this.map.setZoom(10);
                 if (m == undefined){
-                  //  console.log("meeting undefined for " + m.location)
                     return;
                 } 
-                
                 var bounds  = new google.maps.LatLngBounds();
-                
-                
                 //Everytime you add a new marker:
-                
                 var loc = new google.maps.LatLng(m.position.lat(), m.position.lng());
                 bounds.extend(loc);
                 //After all markers have been added:
-                
                 this.map.fitBounds(bounds);  //     # auto-zoom
                 this.map.panToBounds(bounds);  //   # auto-center
-                
-                
                 // google.maps.event.trigger(this.map, "resize");
                 // // this.map.setCenter(m.position)
                 // this.map.panTo(m.position);
                  this.map.setZoom(14);
-
-
                 if (self.lastInfoWindow){
                     self.lastInfoWindow.close();
                 } else {
@@ -76,9 +60,6 @@ export default {
                 this.map.setZoom(10);
                 google.maps.event.trigger(this.map, "resize");
             }
-                
-                // store.dispatch('handleMyStateChange');
-                //  }
             },
             initMap: function(){
                 this.map = new google.maps.Map(document.getElementById('my-map'), {
@@ -87,48 +68,20 @@ export default {
                     zoom: 16
             });
             var self = this;
-//Adding zoom_changed event listener here
-  this.map.addListener('zoom_changed', function() {  
-    document.getElementById('panel').innerHTML  = `Zoom: ${self.map.getZoom()}`;
-    window.setTimeout(function() {  
-      document.getElementById('panel').innerHTML = '';
-    }, 2000);  
-  });  
-
-
+            //Adding zoom_changed event listener here
+            this.map.addListener('zoom_changed', function() {  
+                document.getElementById('panel').innerHTML  = `Zoom: ${self.map.getZoom()}`;
+                window.setTimeout(function() {  
+                document.getElementById('panel').innerHTML = '';
+                }, 2000);  
+            });  
             google.maps.event.addListener(self.map, 'click', function(event) {
-               // console.log("map clicked................... at : lnglat " + event.latlng)
-              //  google.maps.event.addListener(map, "click", function(event) {
-                  console.log(`checking lastInfoWindow..${JSON.stringify(event, null, 3)}`)
-               //   console.log(`checking lastInfoWindow.====.${JSON.stringify(self.lastInfoWindow, null, 3)}`)
                   if (self.lastInfoWindow){
                     self.lastInfoWindow.close();
                   }
-               // });
                 var mapZoom = self.map.getZoom();
-                
                 var startLocation = event.latLng;
-               // console.log("zoom is " + mapZoom + " at " + startLocation)
-            //   debugger
-            //    var loc = {};
-
-            // loc[0] = {
-            //     location: 'hello location',
-            //     address: '',
-            //     city: '',
-            //     state: '',
-            //     postal_code: '',
-            //     loc : {
-            //         "type": "Point",
-            //         "coordinates": [
-            //         startLocation.lng(),
-            //         startLocation.lat()
-            //             ]
-            //         }
-            // }
-         //   self.locations = loc
             self.$emit('clicked', startLocation)
-               // setTimeout(placeMarker, 600);
             });
 
             function placeMarker() {
@@ -136,8 +89,6 @@ export default {
                     new google.maps.Marker({position: location, map: self.map});
                 }
             }
-
-
         },
         newMarkerContent:function(meetings){
             var content = "";
@@ -166,10 +117,7 @@ export default {
         return content
         },
         makeNewMarkers:function(locations){
-             // delete markers
-            // debugger;
             // always delete all markers
-            console.log("makeNewMarkers = " + locations)
             this.markers.forEach(function (m) {
                 m.setMap(null);
             })
@@ -179,7 +127,6 @@ export default {
                 console.log("no locations to mark")
                 return;
             }
-            console.log("locations for markers len = " + Object.keys(locations).length)
             this.markers.forEach(function (m) {
                 m.setMap(null);
             })
@@ -204,7 +151,6 @@ export default {
                 marker.content = "<div class='top-info-window'>" + marker.content + "</div>";
                 google.maps.event.addListener(marker, 'click', (function (mark) {
                 return function () {
-                   // debugger
                     if (self.lastInfoWindow)
                     self.lastInfoWindow.close();
                     else
@@ -215,7 +161,6 @@ export default {
                     self.lastInfoWindow = infowindow;
                     }
                     })(marker));
-        //    bounds.extend(latlng);
             this.markers.push(marker)
         }// end of locations
        
@@ -229,47 +174,17 @@ export default {
             }
             self.map.fitBounds(bounds);
          }
-          
-         // must async this because the always goes into a loop if we don't
-     //   setTimeout(function(){
-            // var bounds = new google.maps.LatLngBounds();
-            // for (var i = 0; i < self.markers.length; i++) {
-            // bounds.extend(self.markers[i].getPosition());
-            // }
-            // self.map.fitBounds(bounds);
-      //  },100)
         },
    },
    watch: {
     locations: {
        handler(val){
-       // do stuff
-        console.log("locations changed..........")
-        console.log("googlemaps.vue " + Object.keys(val).length + " locations found")
-       // console.log(JSON.stringify(val, null, 4))
         this.makeNewMarkers(val);
         },
         deep: true
     },
-    // selectedMeeting: {
-    // handler (meeting) {
-    //     debugger
-    //       var m = this.markers.filter(function(x){
-    //           x.id == meeting.id
-    //       })
-    //      // console.log(`found marker for ${m.name}`)
-    //         this.map.setCenter(m)
-    //        // store.dispatch('handleMyStateChange');
-    //     }
-    // },
    },
   computed: {
-    //   selectedMeeting: function(){
-    //       var meeting = this.$store.getters.getSelectedMeeting
-    //       if (!meeting) { return null}
-    //       // find the selectedMeeting marker
-          
-    //   }
   },
   mounted: function(){
       var self = this;
@@ -282,10 +197,8 @@ export default {
             function (val) {
                 //do something on data change
                 if (val){
-                    console.log(`googlemaps.vue watch store: new selectedMeeting: name=${val.name}`)
                     self.setMapCenter(val)
                 } else {
-                    console.log(` unselect meeting................`)
                     self.setMapCenter(val)
                 }
             },

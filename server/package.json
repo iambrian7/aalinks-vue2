@@ -5,7 +5,7 @@
   "main": "apiserver.js",
   "scripts": {
     "start": "nodemon apiserver.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "cross-env NODE_ENV=development nodemon apiserver.js"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +13,7 @@
   "dependencies": {
     "body-parser": "^1.18.2",
     "cors": "^2.8.4",
+    "cross-env": "^6.0.3",
     "dotenv": "^8.2.0",
     "express": "^4.16.3",
     "mongoose": "^5.8.0",

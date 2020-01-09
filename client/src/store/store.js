@@ -36,6 +36,7 @@ const debug = process.env.NODE_ENV !== 'production'
 export default new Vuex.Store({
   state: {
     meetings: [],
+    meeting: null,
     newLocation: {"name":"Turning Point","lat":30.225,"lng":-92.011,"address":"210 Eighth St, Lafayette, LA 70501, USA"},
     filters: {
       day: 0,
@@ -59,6 +60,9 @@ export default new Vuex.Store({
     // tripleCounter: state => {
     //   return state.counter * 3;
     // }
+    getAMeeting: state => {
+      return state.meeting
+    },
     getSelectedMeeting: state => {
       return state.selectedMeeting
     },
@@ -93,6 +97,9 @@ export default new Vuex.Store({
     }
   },
   mutations: {
+    getAMeeting: (state, meeting) => {
+      state.meeting = meeting
+    },
     getAllMeetings: (state, meetings) => {
       state.meetings = meetings
     },
@@ -157,6 +164,12 @@ export default new Vuex.Store({
       ////////////   get meetings from mongodb (1047 max)
       // console.log(`gotAllMeetings: ${JSON.stringify(res.data[0],null,3)}`)
       commit('getAllMeetings', res.data)
+    },
+    getAMeeting: async ({ commit, state }) => {
+      
+      var res = await axios.get(`http://localhost:8086/meeting/squadx`)
+  
+      commit('getAMeeting', res.data)
     },
     setViewMeeting: ({ commit }, meeting ) => {
       commit('setViewMeeting', meeting)

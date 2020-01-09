@@ -8,14 +8,57 @@ var { getLocations, getMeetings, distance, getRegions, getSiteNames, writeFile }
 var globalLocations = getLocations();
 var globalMeetings = getMeetings();
 
+// var slugToId = {};
+// var idToSlug = {};
+console.time('mapSlugs')
+var [slugToId, idToSlug] = mapSlugs(globalLocations);
+// apply slugs to locations
+const locations = globalLocations.map(x => {
+  x.slug = idToSlug[x.id];
+  return x;
+})
+var [slugToId, idToSlug] = mapSlugs(globalMeetings);
+// apply slugs to locations
+const meetings = globalMeetings.map(x => {
+  x.slug = idToSlug[x.id];
+  return x;
+})
+console.timeEnd('mapSlugs')
+console.log(`mapped locations: ${JSON.stringify(locations.slice(0,5), null, 3)}`)
+console.log(`mapped meetings: ${JSON.stringify(meetings.slice(0,5), null, 3)}`)
+
   module.exports = createMeetingGuide;
 
+  function mapSlugs(list){
+    const slugs = getSlugs(list);
+    var slugId = {};
+    var idSlug = {};
+    slugs.forEach(x => {
+      slugId[x.name] = x.id;
+      idSlug[x.id] = x.name;
+    });
+    return [slugId,idSlug]
+  }
  function createMeetingGuide(){
   return {
       globalLocations,
       globalMeetings,
+      locations,
+      meetings,
       MDmeetings() {
         console.log("create MDmeetings locs len=" + globalLocations.length )
+      },
+      findMeetings(foundLocations){
+        var arrayOfLocIds = foundLocations.map(x => x.id);
+        var foundMeetings = globalMeetings.filter(x => arrayOfLocIds.includes(x.locid));
+        return foundMeetings;
+      },
+      slugFind(slug){
+        var meeting = meetings.find(x => x.slug == slug)
+        return meeting;
+      },
+      format(meeting,location){
+        return MeetingGuideFormat(meeting,location)
       },
       geofind(miles,homelat,homelng){
         var foundLocations = globalLocations.filter(x => distance(homelat,homelng,x.lat,x.lng) < miles);
@@ -26,36 +69,42 @@ var globalMeetings = getMeetings();
             return MeetingGuideFormat(x,loc)
           })
       },// end geofind
-      meetingSlugs(){
-        let slugId = 0;
-        let lastSlug = '';
-        let slugs = globalMeetings.map((x,i,m) => {
-         let n =  uncode(x.name.trim());
-         if (n.length == 0){
-           n = "anonymous" + slugId++;
-         }
-         return n;
-        });
-        slugs = slugs.map(x1 => {return x1.replace(/\s/g, "")})
-        slugs = slugs.map(t => t.replace(/[/\\?%*:|"<>']/g, ''))
-        // slugs = slugs.map(t => t.toLowerCase().replace(/[/\\?%*:|"<>']/g, ''))
-        slugs.sort();
-        var id = 0;
-        slugs.forEach((x,i,slugs) => {
-        // for (var i=0; i<50; i++){
-          if (slugs[i] == lastSlug){
-            slugId++;
-            slugs[i] += '-' + id++;
-          } else {
-            id = 0;
-            lastSlug = slugs[i];
-          }
-        })
-        console.log(`dup slugs = ${slugId}`)
-        return slugs.slice(5550,5650);
-      }
     }
   };
+  function getSlugs(list){
+    let slugId = 0;
+    let lastSlug = '';
+    let slugs = list.map((x,i,m) => {
+      let n =  uncode(x.name.trim());
+      if (n.length == 0){
+        n = "anonymous" + slugId++;
+      }
+      n = n.replace(/[/\\?%*:|"<>',+#;&\s]/g, '');
+      if (!isNaN(n) & n.length > 0){
+        n = `n${n}`;
+      }
+      return {name:n,id:x.id}
+      });
+    slugs.sort((a,b) => {
+      var a1 = a.name
+      var b1 = b.name
+      if (a1 > b1) return 1;
+      if (a1 < b1) return -1
+      return 0
+    });
+    var id = 0;
+    slugs.forEach((x,i,slugs) => {
+      if (slugs[i].name == lastSlug){
+        slugId++;
+        slugs[i].name += '-' + id++;
+      } else {
+        id = 0;
+        lastSlug = slugs[i].name;
+      }
+    })
+    return slugs;
+    // return slugs.slice(5550,5560);
+  }
     
   function MeetingGuideFormat(x,loc){
       // parse address
@@ -67,7 +116,7 @@ var globalMeetings = getMeetings();
   return {
     // "_id": x.id,
     "name": uncode(x.name),
-    // "slug": "it-might-have-been-worse",
+    "slug": x.slug,
     // "updated": "2019-10-01T22:34:04.152Z",
     "day": x.day,
     "time": convertTo24Hour(x.time),

@@ -5,12 +5,30 @@ var Geomeetings = require('../models/db');
 const MeetingGuide = require("./MeetingGuide");
 const md = MeetingGuide();
 
+
+
+
+router.get('/locations', function(req, res, next) {
+  console.log("get locations............")
+  const locations = md.globalLocations.slice(0,10)
+  res.status(200).json(locations);
+});
+router.get('/onlymeetings', function(req, res, next) {
+  console.log("get onlymeetings............")
+  const locations = md.locations.slice(0,10)
+  console.log(`onlymeeting:locations ${JSON.stringify(locations, null, 3)}`)
+  const meetings = md.findMeetings(locations);
+  // const locations = md.globalLocations.slice(0,10)
+  // const meetings = md.findMeetings(locations);
+  res.status(200).json({meetings,locations})
+});
+
 router.get('/meetingsx', function(req, res, next) {
- var miles = req.query.miles;
- var lat = req.query.lat;
- var lng = req.query.lng;
- if (miles == undefined) {
-   miles = 3000;
+  var miles = req.query.miles;
+  var lat = req.query.lat;
+  var lng = req.query.lng;
+  if (miles == undefined) {
+    miles = 3000;
   }
   console.log("got miles= " + miles + " lat=" + lat + " lng=" + lng)
   const mymeetings = md.geofind(50,lat,lng);
@@ -60,37 +78,59 @@ router.get('/meetings', function(req, res, next) {
 });
 
 
-router.get('/:name', function(req, res, next) {
+// router.get('/:name', function(req, res, next) {
  
-  var name = req.params.name;
-  console.log("meeting=" + name)
-  //var name = "sahara-sunrise-1st-step";
-  Geomeetings.findOne({ 'slug': name },  function (err, data) {
-  if (err) return handleError(err);
-  console.log(JSON.stringify(data,null, 3))
-  res.locals = {
-        some_value: 'foo bar',
-        list: ['cat', 'dog'],
-        mymeeting: data
-    }
-  res.render('index', {
-     title: data.name,
-     
-     // Override `foo` helper only for this rendering.
-        helpers: {
-            meeting: function () { return data.name; }
-        }
-       });
-  //console.log('%s %s is a %s.', person.name.first, person.name.last, person.occupation) // Space Ghost is a talk show host.
-})
+//   var name = req.params.name;
+//   console.log("meeting=" + name)
+//   //var name = "sahara-sunrise-1st-step";
+//   Geomeetings.findOne({ 'slug': name },  function (err, data) {
+//       if (err) return handleError(err);
+//       console.log(JSON.stringify(data,null, 3))
+//       res.locals = {
+//             some_value: 'foo bar',
+//             list: ['cat', 'dog'],
+//             mymeeting: data
+//         }
+//       res.render('index', {
+//         title: data.name,
+        
+//         // Override `foo` helper only for this rendering.
+//             helpers: {
+//                 meeting: function () { return data.name; }
+//             }
+//           });
+//       //console.log('%s %s is a %s.', person.name.first, person.name.last, person.occupation) // Space Ghost is a talk show host.
+//     })
  
-});
+// });
 
   function handleError(err) {
     console.log("geomeeting error: " + err)
   }
 router.post('/create', function(req, res){
   
+})
+
+router.get('/:slug', (req, res) => {
+  const slug = req.params.slug;
+  console.log(`get(/meeting________id= ${req.params.slug}`);
+  // find meeting with slug
+  const meeting = md.meetings.find(x => x.slug == req.params.slug);
+  console.log(`slug meeting: ${JSON.stringify(meeting, null, 3)}`)
+  
+  // using meeting.locid find location
+  const location = md.locations.find(x => x.id == meeting.locid);
+  console.log(`slug location: ${JSON.stringify(location, null, 3)}`)
+  const formattedMeeting = md.format(meeting,location)
+  const meetings = md.meetings.filter(x => x.locid == location.id);
+  // using lat and lng of location find all locations 
+  
+  const result = {
+    name: slug,
+    meeting: formattedMeeting,
+    meetings
+  }
+  res.status("200").send(result)
 })
 // router.get('/create', function(req, res, next) {
 //   console.dir('hostname: ' + req.hostname)

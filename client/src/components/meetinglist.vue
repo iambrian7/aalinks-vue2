@@ -41,24 +41,9 @@ export default {
 
     viewMeeting: function(meeting){
     //  debugger
+      console.log("view meeting " + JSON.stringify(meeting, null, 3))
       this.$store.dispatch("setViewMeeting", meeting)
-      this.$router.push({path:`/meeting/${meeting.id}`})
-      // this.$router.push({path:`/${meeting.name}`, props: true})
-      
-      // this.$store.dispatch("setViewMeeting", meeting)
-      // this.$router.push({path:`/:meeting`, name:'single', props: true})
-      // this.$router.push({name: 'single', params: {meeting}});
-      // console.log("view meeting " + meeting.name)
-      // console.log("view detailsOpen " + this.detailsOpen)
-      // // console.log("view meeting " + JSON.stringify(meeting, null, 3))
-      // if (this.detailsOpen && this.detailsOpen == meeting.name){
-      //   this.detailsOpen = ""
-      //   this.$store.dispatch("setSelectedMeeting", null)
-      // } else {
-      //   this.detailsOpen = meeting.name
-      //   // this.$router.push({ path: '/ameeting', params: { meeting }}) 
-      //   this.$store.dispatch("setSelectedMeeting", meeting)
-      // }
+      this.$router.push({path:`/meeting/${meeting.slug}`})
     },
     fixIndex: function(){
      // debugger;

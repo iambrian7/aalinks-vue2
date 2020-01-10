@@ -62,8 +62,19 @@ export default {
             }
             },
             initMap: function(){
+                var position =  {lat: 44.9169913, lng: -93.4435269};
+                if (typeof locations !== 'undefined'){
+                    position = {lat:propLocation.loc.coordinates[1],lng:propLocation.loc.coordinates[0]}
+                console.log(`initMap: locations = ${JSON.stringify(locations,null,3)}`)
+                var propLocation = this.locations[0];
+                console.log(`initMap: propLocation = ${JSON.stringify(propLocation,null,3)}`)
+                } else {
+                    console.log('initMap: locations undefined***************************************')
+                }
+
                 this.map = new google.maps.Map(document.getElementById('my-map'), {
-                    center: {lat: 44.9169913, lng: -93.4435269},
+                    center: position,
+                    // center: {lat: 44.9169913, lng: -93.4435269},
                     gestureHandling: 'greedy',
                     zoom: 16
             });
@@ -179,6 +190,15 @@ export default {
    watch: {
     locations: {
        handler(val){
+            // if (typeof locations !== 'undefined'){
+            //         position = {lat:propLocation.loc.coordinates[1],lng:propLocation.loc.coordinates[0]}
+            //     console.log(`initMap: locations = ${JSON.stringify(locations,null,3)}`)
+            //     var propLocation = this.locations[0];
+            //     console.log(`initMap: propLocation = ${JSON.stringify(propLocation,null,3)}`)
+            //     } else {
+            //         console.log('initMap: locations undefined***************************************')
+            //     }
+           console.log(`locations changed ${JSON.stringify(val)}`)
         this.makeNewMarkers(val);
         },
         deep: true

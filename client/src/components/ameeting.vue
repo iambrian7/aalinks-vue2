@@ -3,12 +3,11 @@
       <h1>{{ msg }}</h1>
       <button @click="backToMeetings">Back</button>
       <div class="meeting-info">
-          <span> {{meeting.time_formatted}}     {{ meeting.day | dayname}} </span>
-          <!-- <span> {{a.time_formatted}}</span>   <span>{{ a.day | dayname}} </span> -->
+      <span> {{meeting.time_formatted}}     {{ meeting.day | dayname}} </span>
           <span class="meeting-list-name">
             {{ meeting.name }}
-           </span>
-         </div>
+          </span>
+      </div>
     </div>
   </template>
   

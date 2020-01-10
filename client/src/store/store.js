@@ -60,6 +60,39 @@ export default new Vuex.Store({
     // tripleCounter: state => {
     //   return state.counter * 3;
     // }
+    getLocationMeetings: (state) => (id) => {
+      var newMeetings = state.meetings.filter(x => x.location_id == id);
+      console.log(`getLocationMeetings: found meetins with locid=${id}`)
+      console.log(`getLocationMeetings: newMeetings len = ${newMeetings.length}`)
+      var loc = {};
+      // get all meetings at locid
+      newMeetings.forEach(function(m){
+                if (!loc[m.location_id]){
+                    loc[m.location_id] = {
+                      location: m.location,
+                      address: m.address,
+                      city: m.city,
+                      state: m.state,
+                      postal_code: m.postal_code,
+                      loc : m.loc,
+                      meetings: []
+                    } // add this location data 
+                 }
+                var meeting = {
+                  name: m.name,
+                  slug: m.slug,
+                  day : m.day,
+                  time : m.time,
+                  time_formatted: m.time_formatted,
+                  types: m.types,
+                  id: m.id
+                }
+                loc[m.location_id].meetings.push(meeting) 
+        })// end of new
+        console.log(`getLocationMeetings: found at ${JSON.stringify(loc,null,3)}`)
+
+        return loc;
+    },
     getAMeeting: state => {
       return state.meeting
     },

@@ -1,25 +1,42 @@
 <template>
   <div class="single">
+    <div class="meeting-container">
     <div v-if="!meets">
       <p>Loading..............</p>
     </div>
     <div v-else>
-        <h1>{{ msg }} {{ meets.name }}</h1>
-        <h3> {{meets}}  </h3>
+        <button @click="backToMeetings">Back</button>
+      <div class="meeting-info">
+      <span> {{meets.time_formatted}}     {{ meets.day | dayname}} </span>
+          <span class="meeting-list-name">
+            {{ meets.name }}
+          </span>
+      </div>
+    </div>
+    <div class="google-map-container">
+       <google-map :locations="newlocations"></google-map>
+    </div>
+      <!-- end meeting-container -->
     </div>
   </div>
 </template>
 
 <script>
+   import GoogleMap from '@/components/googlemaps'
+
 export default {
   name: 'meeting',
   // props: ['meetingpath'],
   data () {
     return {
       msg: `Welcome to `,
-      meeting: {}
+      meeting: {},
+      newlocations: {}
     }
   },
+   components: {
+          "google-map": GoogleMap
+    },
   computed: {
     meets(){
         var x = this.$store.getters.getViewMeeting;
@@ -33,11 +50,38 @@ export default {
         }
        }
       console.log(`meets computed at ${JSON.stringify(x,null,3)}`)
+
+     this.newlocations = this.$store.getters.getLocationMeetings(x.location_id);
+
+
+          // loc[0] = {
+          //   location: x.location_name,
+          //     address: x.street,
+          //     city: x.city,
+          //     state: x.state,
+          //     postal_code: x.zip,
+          //     loc : {
+          //       "type": "Point",
+          //         "coordinates": [
+          //           x.loc.coordinates[1]*1,
+          //            x.loc.coordinates[0]*1
+          //         ]
+          //     },
+          //     meetings: []
+          // } // add this location data 
+      console.log(`meets location for google at ${JSON.stringify(this.newlocations,null,3)}`)
+
+           
+
+
       return x
     }
   },
   methods: {
-    
+     backToMeetings: function(){
+      // go back by one record, the same as history.back()
+      this.$router.go(-1)
+    },
     },
 created: function(){
   // debugger;
@@ -50,14 +94,38 @@ created: function(){
     console.log("meeting created")
     var id = this.$route.params.id;
     console.log(`meetingspath: ${id}`)
+
     // console.log(`singlemeeting: created: prop meeting = ${this.meets.name}`)
 },
+  filters: {
+    capitalize: function (value) {
+      if (!value) return ''
+      value = value.toString()
+      return value.charAt(0).toUpperCase() + value.slice(1)
+    },
+    dayname: function(value){
+      var daysIndex = ['Sun','Mon', 'Tue','Wed','Thu', 'Fri', 'Sat'];
+      return daysIndex[+value]
+    }
+  },
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
-
-
+ .google-map-container {
+    height: 60vh;
+    /* width: 100%; */
+    flex: 1 1 auto;
+  }
+  .meeting-info{
+    width: 400px;
+  }
+.meeting-container{
+  display: flex;
+  flex-wrap: wrap;
+  /* width: 100%; */
+    flex: 1 1 auto;
+}
 
 </style>

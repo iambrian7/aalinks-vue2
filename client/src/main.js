@@ -20,6 +20,7 @@ var vm = new Vue({
   template: '<App/>',
   components: { App },
   async created() {
+    console.log("Vue: created: **************")
     await this.$store.dispatch("getStripeKey");
   },
 })

@@ -1,23 +1,42 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import axios from 'axios'
 
+import MeetingService from '@/services/MeetingService'
 
 // import cart from './modules/cart'
 // import products from './modules/products'
 // import createLogger from '../../../src/plugins/logger'
-import meetings from './modules/meetings';
-import stripe from './modules/stripe';
+
 Vue.use(Vuex)
 
+function mileLimit(m,mileMax,lat,lng){
+  // console.log("mileLimit-lat:" + this.lat + " lng:" + this.lng)
+  // console.log("meeting  -lat:" + m.loc.coordinates[1] + " lng:" + m.loc.coordinates[0])
+   return (mileMax > distance(lat,lng,m.loc.coordinates[1],m.loc.coordinates[0])) 
+ }
 
+
+function distance(lat1, lon1, lat2, lon2, unit) {
+  var radlat1 = Math.PI * lat1 / 180;
+  var radlat2 = Math.PI * lat2 / 180;
+  var radlon1 = Math.PI * lon1 / 180;
+  var radlon2 = Math.PI * lon2 / 180;
+  var theta = lon1 - lon2;
+  var radtheta = Math.PI * theta / 180;
+  var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+  dist = Math.acos(dist);
+  dist = dist * 180 / Math.PI;
+  dist = dist * 60 * 1.1515;
+  if (unit === 'K') { dist = dist * 1.609344 };
+  if (unit === 'N') { dist = dist * 0.8684 };
+
+  return dist;
+}
 
 const debug = process.env.NODE_ENV !== 'production'
 
 export default new Vuex.Store({
-  modules: {
-    meetings,
-    stripe
-  },
   state: {
     // meetings: [],
     // meeting: null,
@@ -147,12 +166,12 @@ export default new Vuex.Store({
   }, 
   //commits the mutation, it's asynchronous
   actions: {
-    // getStripeKey({commit, state}) {
-    //   return axios.get(`http://localhost:8086/stripekey`)
-    //     .then(res => {
-    //       commit('getStripeKey', res.data.publishableKey);
-    //     })
-    // },
+    getStripeKey({commit, state}) {
+      return axios.get(`http://localhost:8086/stripekey`)
+        .then(res => {
+          commit('getStripeKey', res.data.publishableKey);
+        })
+    },
     // getAllMeetings: async ({ commit, state }) => {
     //   ///////////////  get meetings from server on DigitalOcean acces is mongodb getting only ~1000 meetings potiental
     //   ///////////////  get meetings from server on DigitalOcean acces is mongodb getting only ~1000 meetings potiental

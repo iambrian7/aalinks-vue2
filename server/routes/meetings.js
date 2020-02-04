@@ -108,7 +108,15 @@ router.get('/meetings', function(req, res, next) {
     console.log("geomeeting error: " + err)
   }
 router.post('/create', function(req, res){
-  
+  console.log(`create meeting: ${JSON.stringify(req.body, null, 3)}`)
+  // add a meeting to added file  
+  md.addMeeting(req.body);
+  const result = {
+    name: 'requested add meeting',
+    meeting: req.body
+  }
+  res.status("200").send(result)
+
 })
 
 router.get('/:slug', (req, res) => {

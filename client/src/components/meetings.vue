@@ -56,7 +56,8 @@
         <meeting-list :meetings="filteredMeetings"></meeting-list>
       </div>
       <div class="aaflex-map" v-if="mapOpen">
-        <google-map :locations="newlocations"></google-map>
+        <google-map :locations="$store.state.meetings.locations"></google-map>
+        <!-- <google-map :locations="newlocations"></google-map> -->
       </div>
    </div>
     
@@ -70,9 +71,9 @@ var geocoder = new google.maps.Geocoder();
 //debugger
     var obj = {};
     geocoder.geocode({'location': latlng}, function(results, status) {
-  //  geocoder.geocode({ 'address': search }, function (results, status) {
-              if (status === google.maps.GeocoderStatus.OK) {
-                  console.log(results[0].geometry.location.lat());
+      //  geocoder.geocode({ 'address': search }, function (results, status) {
+        if (status === google.maps.GeocoderStatus.OK) {
+          console.log(results[0].geometry.location.lat());
                 //   Aalinks.coords = position.coords;
                 obj.lat = results[0].geometry.location.lat()
                 obj.lng = results[0].geometry.location.lng()
@@ -87,8 +88,8 @@ var geocoder = new google.maps.Geocoder();
 
 }
 
-
 function aalinksGeolocate(search,callback){
+  debugger
 var geocoder = new google.maps.Geocoder();
     var obj = {};
     geocoder.geocode({ 'address': search }, function (results, status) {
@@ -154,81 +155,41 @@ export default {
   },
   watch:{
     day: function (val) {
-      this.$store.state.filters.day = val
+      this.$store.state.meetings.filters.day = val
     },
     mileMax: function (val) {
    //   console.log("mileMax changed...............to " + val)
       this.$store.dispatch("changeMileMax", val)
-      // this.$store.state.filters.mileMax = val
-      // debugger
     },
     picked: function (val) {
-      this.$store.state.filters.picked = val
+      this.$store.state.meetings.filters.picked = val
     },
   
   },
   methods: {
-    mileLimit: function(m){
-     // console.log("mileLimit-lat:" + this.lat + " lng:" + this.lng)
-     // console.log("meeting  -lat:" + m.loc.coordinates[1] + " lng:" + m.loc.coordinates[0])
-      return (this.mileMax > this.distance(this.lat,this.lng,m.loc.coordinates[1],m.loc.coordinates[0])) 
-    },
-    daycut: function(m){
-      if (this.day == 7) return true; // just return all days
-      return (this.day == m.day) 
-    },
-    distance: function(lat1, lon1, lat2, lon2, unit) {
-      var radlat1 = Math.PI * lat1 / 180;
-      var radlat2 = Math.PI * lat2 / 180;
-      var radlon1 = Math.PI * lon1 / 180;
-      var radlon2 = Math.PI * lon2 / 180;
-      var theta = lon1 - lon2;
-      var radtheta = Math.PI * theta / 180;
-      var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
-      dist = Math.acos(dist);
-      dist = dist * 180 / Math.PI;
-      dist = dist * 60 * 1.1515;
-      if (unit === 'K') { dist = dist * 1.609344 };
-      if (unit === 'N') { dist = dist * 0.8684 };
-
-      return dist;
-    },
     geolocateCenter(){
-               //  var el = document.querySelector(".search-input-error")
                console.log("searching.........." + this.searchInput);
-             //  return;
-
-
                 if (Number.isInteger(this.searchInput)*1) {
                     console.log("address is not valid...........")
-                   
-                   // el.classList.remove("hide")
                     return;
                 }
-              //  el.classList.add("hide")
                 var self = this;
-                var aalocated = aalinksGeolocate(self.searchInput,function(data){
+                debugger
+                var aalocated = aalinksGeolocate(self.searchInput,(data) => {
                     console.log("uitil located at: " + JSON.stringify(data))
                    self.lat = data.lat;
                    self.lng = data.lng;
-                   self.$store.state.filters.lat = data.lat
-                   self.$store.state.filters.lng = data.lng
+                   self.$store.state.meetings.filters.lat = data.lat
+                   self.$store.state.meetings.filters.lng = data.lng
                   self.$store.dispatch("getAllMeetings")
-
-                  // debugger
-                    // console.log("entered: " + self.searchInput.value)
-                    // console.log('get my location called');
                     self.searchInput = "";
-                  //  self.searchInput.placeholder = "enter new home location..."
                     self.baselocation = data.formatted_address;
-                   // document.querySelector("holy-header span").innerHTML = data.formatted_address;
-                   // self.getMongoMeetings();// this will dispatch the new meetings (this.displaynewmeetings)
                 })
             },
             getAddressFromLatLng: function(){
               var self = this
-              var lat = this.$store.state.filters.lat
-              var lng = this.$store.state.filters.lng
+              var lat = this.$store.state.meetings.filters.lat
+              var lng = this.$store.state.meetings.filters.lng
                // geocoder.geocode({'location': latlng}, function(results, status) {
                  console.log("latlng located at: " + lat + ':' + lng)
               var latlng = {lat: parseFloat(lat), lng: parseFloat(lng)};
@@ -243,23 +204,8 @@ export default {
   computed: {
     filteredMeetings: function(){
     var self = this;
-    //  var newMeetings = this.meetings.filter(function(m){
-      //      return ((self.mileLimit(m)) &&
-      //               (self.day == 7 || self.day == m.day) &&
-      //              (!self.picked || m.types.includes(self.picked))
-      //               )
-      //   })
-      
-    // debugger
- //   this.$store.dispatch("getFilteredMeetings")
-    // var newMeetings = this.meetings
       var newMeetings = this.$store.getters.getFilteredMeetings
-      // var newMeetings = this.$store.getters.getFilteredMeetings({
-      //   day: this.day,
-      //   picked: '',
-      //   mileMax: this.mileMax,
-      //   home: {lat:44.9270729,lng:-93.4479148}
-      // })  
+      console.log(`meetings:filteredMeetings: newMeetings found: ${newMeetings.length}`)
       newMeetings.sort(function (a, b) {
         // ******************** first sort days
         var nameA = a.day;
@@ -282,7 +228,7 @@ export default {
         // names must be equal
         return 0;
       });
-
+    // format each meeting in MeetingGuide format
         var loc = {};
         newMeetings.forEach(function(m){
                 if (!loc[m.location_id]){
@@ -309,6 +255,14 @@ export default {
         })// end of newMeetings forEach
   
         this.newlocations = loc; // should pass the locations to the googlemap component
+        const locationsArray = [];
+        Object.keys(loc).forEach(x =>{
+          locationsArray.push(loc[x])
+        });
+        console.log(`locationsArray=${JSON.stringify(locationsArray, null, 3)}`)
+        // set the locations in the store
+        this.$store.dispatch("locations", locationsArray)
+        // this.$store.dispatch("locations", loc)
         
      return newMeetings;
     },
@@ -319,7 +273,7 @@ export default {
       this.getAddressFromLatLng();
       this.mileMax = this.$store.getters.getMileMax
       this.meetings = this.$store.getters.getFilteredMeetings
-      this.$store.state.filters.day = this.day;
+      this.$store.state.meetings.filters.day = this.day;
     //  this.mileMax = 40;
     }
 }
@@ -331,14 +285,16 @@ export default {
     display: none;
 
   }
-.meetings { width: 100wh; height: 100vh; background: #ccc;
+.meetings { width: 100vw; 
+ height: calc(100vh - 140px); 
+ background: #ccc;
 padding: 0; margin: 0;}
 /* .aaflex-container {display: flex; align-content: flex-start; width: 100%; flex-direction: column;} */
 .aaflex-container {
   display: grid; 
   grid-template-columns: 1fr 3fr;
   grid-auto-rows: minmax(200px, auto);
-  height: 800px;
+  height: 100%;
   }
 .aaflex-options { width: 100%; padding: 5px; background:  ##afdffc;}
 
@@ -374,8 +330,9 @@ padding: 0; margin: 0;}
 .meetings-info {display: flex; justify-content: space-around; border: 1px solid black; margin: 10px; 
     background: #6cffbc; border-radius: 5px; font-size: 1.0em; padding: 10px;}
 .meetings-info span {
-  font-size: 1.6em;
-  text-align: right;
+     font-size: 16px;
+    text-align: right;
+    font-weight: 600;
   padding-left: 20px;
 }
 .meetings-info input {
@@ -391,7 +348,7 @@ padding: 0; margin: 0;}
 #accts-todo-date {padding: 5px; font-size: 0.6em; flex: 0 0 200px; color: red;} */
 .hide {display: none;}
 /* .due {background:#fd9dpx9d;} */
- .aaflex-map{ height: 800px; max-height: 800px;}
+ /* .aaflex-map{ height: 800px; max-height: 800px;} */
 /* .meetinglist{height: 900px;} */
 /* @media (max-width: 1200px) {
   .aaflex-container {
@@ -409,6 +366,11 @@ padding: 0; margin: 0;}
 @media (min-height: 680px) {
   }
   @media screen and (max-width: 600px) {
+    .meetings { width: 100wh; 
+    height: calc(100% - 260px); 
+    background: #ccc;
+      padding: 0; margin: 0;}
+
   .aaflex-container {
   grid-template-columns: 1fr;
   grid-auto-rows: minmax(200px, auto);

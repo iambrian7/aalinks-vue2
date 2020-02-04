@@ -37,6 +37,7 @@ function getSiteNames(){
   module.exports.getSiteNames = getSiteNames;
   module.exports.distance = distance;
   module.exports.writeFile = writeFile;
+  module.exports.getFile = getFile;
 
   function getFile(f) {
     var dir = path.join(__dirname, f);

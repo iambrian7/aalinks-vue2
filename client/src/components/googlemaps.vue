@@ -62,12 +62,13 @@ export default {
             }
             },
             initMap: function(){
-                var position =  {lat: 44.9169913, lng: -93.4435269};
-                if (typeof locations !== 'undefined'){
+
+                var position =  {lat: 44.9169913, lng: -93.4435269}; // default position for map
+                if (this.locations.length){
+                    var propLocation = this.locations[0];
+                    console.log(`initMap: propLocation = ${JSON.stringify(propLocation,null,3)}`)
                     position = {lat:propLocation.loc.coordinates[1],lng:propLocation.loc.coordinates[0]}
-                console.log(`initMap: locations = ${JSON.stringify(locations,null,3)}`)
-                var propLocation = this.locations[0];
-                console.log(`initMap: propLocation = ${JSON.stringify(propLocation,null,3)}`)
+                console.log(`initMap: locations = ${JSON.stringify(this.locations[0],null,3)}`)
                 } else {
                     console.log('initMap: locations undefined***************************************')
                 }
@@ -129,22 +130,22 @@ export default {
         },
         makeNewMarkers:function(locations){
             // always delete all markers
+            // debugger
+            // console.log(`googlemaps:makeNewMarkers: locations=${JSON.stringify(locations,null,3)}`)
             this.markers.forEach(function (m) {
                 m.setMap(null);
             })
             this.markers = [];
-            if (!locations) return; // no locations so remove all markers
+            if (!locations || locations.length == 0){
+                console.log("no locations to mark")
+                return; // no locations so remove all markers
+            } 
             if (Object.keys(locations).length == 0) {
                 console.log("no locations to mark")
                 return;
             }
-            this.markers.forEach(function (m) {
-                m.setMap(null);
-            })
-            this.markers = [];
             var self = this
-            for(var key in locations){
-                var m = locations[key]
+            locations.forEach(m => {
                 var lat = m.loc.coordinates[1]
                 var lng = m.loc.coordinates[0]
                 var  myLatLng = { lat: lat * 1, lng: lng * 1}
@@ -173,7 +174,7 @@ export default {
                     }
                     })(marker));
             this.markers.push(marker)
-        }// end of locations
+        })// end of locations
        
          var self = this;
          if (self.markers.length == 1){
@@ -198,7 +199,8 @@ export default {
             //     } else {
             //         console.log('initMap: locations undefined***************************************')
             //     }
-           console.log(`locations changed ${JSON.stringify(val)}`)
+        //    console.log(`locations changed ${JSON.stringify(val)}`)
+           console.log(`locations changed number= ${Object.keys(val).length}`)
         this.makeNewMarkers(val);
         },
         deep: true
@@ -208,6 +210,7 @@ export default {
   },
   mounted: function(){
       var self = this;
+      console.log(`mounted: locations: ${JSON.stringify(this.locations, null, 3)}`)
       this.initMap();
       this.makeNewMarkers(this.locations);
       this.$store.watch(
@@ -262,8 +265,8 @@ export default {
     .infowin { background: yellow;}
 
     #panel {    
-        position: absolute;    
-        top: 330px;    
+        position: relative;    
+        top: 130px;    
         left: 30%;    
         z-index: 5;    
         padding: 0px;    

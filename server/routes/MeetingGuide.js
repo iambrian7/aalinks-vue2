@@ -1,9 +1,13 @@
 var path = require('path');
 var fs = require('fs');
 
+var outdir = process.cwd();
+const outputDir = '../test';
+const mypath = path.resolve(`${outdir}/test/newLocations.json`);
+  console.log(`addMeeting: path=${mypath}`)
 // const home = {lat:44.9270729,lng:-93.4479148};
 
-var { getLocations, getMeetings, distance, getRegions, getSiteNames, writeFile } = require("./scrapeUtil");
+var { getLocations, getMeetings, distance, getRegions, getSiteNames, writeFile, getFile } = require("./scrapeUtil");
 
 var globalLocations = getLocations();
 var globalMeetings = getMeetings();
@@ -47,6 +51,68 @@ console.log(`mapped meetings: ${JSON.stringify(meetings.slice(0,5), null, 3)}`)
       meetings,
       MDmeetings() {
         console.log("create MDmeetings locs len=" + globalLocations.length )
+      },
+      addMeeting(meeting){
+        
+
+        console.log(`MeetingGuide.js: addMeeting= ${JSON.stringify(meeting, null, 3)}`)
+        // create location
+        const locId = locations[locations.length-1].id + 1;
+        console.log(`globalLocations: len=${locations.length} last id=${locId}`)
+        const meetingId = meetings[meetings.length-1].id + 1;
+        console.log(`globalMeetingss: len=${meetings.length} last id=${meetingId}`);
+        let loc = meeting.location;
+          var newloc = {
+            "id":locId,
+            "name": loc.name,
+            "siteId": "new_meeting",
+            "lat": Math.round(loc.lat*1000) / 1000 ,   // limit to 3 decimals
+            "lng":  Math.round(loc.lng*1000) / 1000 , // limit to 3 decimals
+            "address": loc.mapped_address
+          }
+        // get addedLocations 
+        let addedLocations;
+        // const path = `${outputDir}/newLocations.json`;
+        console.log(`addMeeting: path=${mypath}`)
+
+        try {
+         
+
+          fs.accessSync(`${outdir}\\test`, fs.constants.R_OK | fs.constants.W_OK);
+          
+         
+          addedLocations = JSON.parse(fs.readFileSync(mypath, 'utf8'))
+          // addedLocations = JSON.parse(getFile(mypath))
+          console.log('can read/write');
+        } catch (err) {
+          addedLocations = [];
+          console.error('no access!');
+        }
+
+
+        //  if (fs.existsSync(path)) {
+        //    console.log(`${path} exists****************`)
+        //   } else {
+        //     console.log(`${path} does not exist****************`)
+
+        // }
+        // check for duplicate locations
+        const found = addedLocations.find(x => x.id = newloc.id);
+        if (found){
+          console.log(`dup location found=${newloc.id}`)
+        } else {
+          console.log(`added location =${newloc.id}`)
+
+          addedLocations.push(newloc);
+          writeFile(mypath, JSON.stringify(addedLocations))
+        }
+
+
+
+
+
+
+
       },
       findMeetings(foundLocations){
         var arrayOfLocIds = foundLocations.map(x => x.id);

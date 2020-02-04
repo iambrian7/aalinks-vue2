@@ -14,7 +14,8 @@
       </div>
     </div>
     <div class="google-map-container">
-       <google-map :locations="newlocations"></google-map>
+       <google-map :locations="$store.state.locations"></google-map>
+       <!-- <google-map :locations="newlocations"></google-map> -->
     </div>
       <!-- end meeting-container -->
     </div>
@@ -92,6 +93,8 @@ created: function(){
     //   }
     // }
     console.log("meeting created")
+                console.log(`meeting:store: locations=${JSON.stringify(this.$store.state.locations,null,3)}`)
+
     var id = this.$route.params.id;
     console.log(`meetingspath: ${id}`)
 

@@ -36,7 +36,6 @@ router.get('/meetingsx', function(req, res, next) {
 });
 
 
-
 router.get('/meetings', function(req, res, next) {
  console.log("api getting meetings....")
   var miles = req.params.miles;

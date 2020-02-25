@@ -49,6 +49,15 @@ export default {
     locations: null
   },
   getters: {
+    getLocation: (state) => (location) => {
+      var newMeetings = state.meetings.filter(x => {
+        return (0.1 > distance(location.lat,location.lng,x.loc.coordinates[1],x.loc.coordinates[0])) 
+      })
+      console.log(`store: getLocation: found ${newMeetings.length}`)
+      return newMeetings
+
+    },
+  
     getLocationMeetings: (state) => (id) => {
       var newMeetings = state.meetings.filter(x => x.location_id == id);
       console.log(`getLocationMeetings: found meetins with locid=${id}`)

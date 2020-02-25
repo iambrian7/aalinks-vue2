@@ -59,9 +59,9 @@
             </div>
             <div class="comments-container">
               <label class="control-label bold">Comments:  </label>
-              <p>
-            <textarea name="" id="" width="80vw" v-model="newmeeting.group.comments"></textarea>
-            </p>
+              <div>
+            <textarea v-model="newmeeting.group.comments"></textarea>
+            </div>
             </div>
             <!-- meeting-info -->
           </div>
@@ -73,6 +73,7 @@
       <div class="location-container">    
         <div class="location-info">
           <h2>Location</h2>
+                <div class="group-error" v-if="locationError">{{ locationError }}</div>
           <p> <span>Name   :</span> <input type="text" v-model="newmeeting.location.location_name"></p>
           <p> <span>Address:</span> <input type="text" v-model="newmeeting.location.address"></p>
           <p> <span>City:  </span>  <input type="text" v-model="newmeeting.location.city"></p>
@@ -80,6 +81,12 @@
           <p> <span>Zip:   </span>  <input type="text" v-model="newmeeting.location.zip"></p>
           <p><span>Latitude:</span>: {{newmeeting.location.lat}}  <span>Longitude:</span>: {{newmeeting.location.lng}}</p>
         <br>
+        <div v-if="fileLocationFound" class="file-location">
+        File Location found:
+        <p>
+          {{ fileLocationFound.name}}
+        </p>
+        </div>
           <button class="btn" @click.prevent="ckLocation">Check Location</button>   
           <div class="map-error" v-if="addressError.length">Location form is not valid {{ addressError }}</div>
           <div v-if="newmeeting.location.mapped_address" class="map-results">
@@ -181,9 +188,11 @@ var meetingStorage = {
   "W": "Women",
   "Y": "Young People"
 }
-  function parseGeoCoderResult(result){
-  // function parseGeoCoderResult(result,location){
-    let location = {};
+
+
+  // function parseGeoCoderResult(result){
+  function parseGeoCoderResult(result,location){
+    // let location = {};
       console.log(`outsideFunction:${JSON.stringify(result, null, 4)}`)
       location.lat = Math.round(result.geometry.location.lat()*1000) / 1000; 
       location.lng = Math.round(result.geometry.location.lng()*1000) / 1000; 
@@ -214,7 +223,7 @@ var meetingStorage = {
       
           })
           console.log("parseGeoCoderResult:  ended::::::::::formatted address found: " + JSON.stringify(location, null, 4))
-      return location;
+      // return location;
   }
    import GoogleMap from '@/components/googlemaps'
   export default {
@@ -224,6 +233,7 @@ var meetingStorage = {
     },
     data () {
       return {
+        fileLocationFound: null,
         msg: 'Add a meeting',
         state: 1,
         meetingTopics: topic_codes,
@@ -239,6 +249,7 @@ var meetingStorage = {
         lng: '',
         localMeetings: meetingStorage.fetch(),
         groupError: '',
+        locationError: '',
         newmeeting: {
             location: {
               location_name: "",
@@ -308,9 +319,26 @@ var meetingStorage = {
       }
     },
     methods: {
+      validateLocation: function(){
+        console.log("validateLocation:")
+      this.locationError = "";
+        if (this.newmeeting.location.location_name.length < 3){
+          this.locationError = "Location Name is required"
+          return false;
+        } 
+    // check if location exists in current meeting set
+    debugger
+    var existingMeeting = this.$store.getters.getLocation(this.newmeeting.location);
+    console.log(`found exitsting meeting ${existingMeeting}`)
+    return false;
+      },
       addMeeting: function(){
+    console.log(`addMeeting: meeting ********************`)
         this.groupError = '';
         alert("addMeeting............")
+        if (!this.validateLocation()){
+          return;
+        }
         if (this.newmeeting.group.group_name.length < 3){
           this.groupError = "Group Name is required"
         } else {
@@ -319,22 +347,39 @@ var meetingStorage = {
         }
       },
       ckLocation: function(){
+        debugger
         this.addressError = '';
         console.log("addSimpleMeeting: ckLocation")
-        if (this.newmeeting.location.zip.length == 0){
-          if (this.newmeeting.location.city.length == 0 || 
-              this.newmeeting.location.state.length == 0 
+        if (this.newmeeting.location.zip.length == 0 ||
+            this.newmeeting.location.city.length == 0 || 
+            // this.newmeeting.location.lat.length == 0 || 
+            // this.newmeeting.location.lng.length == 0 || 
+            this.newmeeting.location.state.length == 0 
               // this.newmeeting.location.state.length == 0 || 
           ){
             this.addressError = "address invalid"
+          } else {
+              // first check for found location
+              var x = this.getFileLocation(this.newmeeting.location)
+              if (x.length > 0) {
+                this.checkMap()
+              } else {
+                console.log(`chLocation: no found locations`)
+              }
+              if (this.newmeeting.location.address.length == 0){
+                  this.addressError = "we still need an address"
+              }
           }
-        }
-        if (!this.addressError.length){
-          this.checkMap()
-        }
-        if (this.newmeeting.location.address.length == 0){
-            this.addressError = "we still need an address"
-        }
+      },
+      getFileLocation(loc){
+        // dispatch
+          // debugger
+        var locations = this.$store.state.meetings.meetings.filter(x => {
+          var deltaLat = Math.abs(loc.lat - x.loc.coordinates[1]);
+          var deltaLng = Math.abs(loc.lng - x.loc.coordinates[0]);
+          return ((deltaLat + deltaLng) < 0.005)
+        })
+        return locations;
       },
       onClickMap (value) {
         console.log("from addmeeting.vue: map clicked at: " + value.lat() + " : " + value.lng()) // someValue
@@ -389,8 +434,8 @@ var meetingStorage = {
               return;
             } 
            // debugger
-           this.newmeeting.location = parseGeoCoderResult(result)
-          // parseGeoCoderResult(result, this.newmeeting.location)
+          //  this.newmeeting.location = parseGeoCoderResult(result)
+          parseGeoCoderResult(result, this.newmeeting.location)
           console.dir("googleGeocoder: this.newmeeting.location.mapped_address = " + JSON.stringify(this.newmeeting.location.mapped_address, null, 4))
            console.log("newmeeting.location =" + JSON.stringify(this.newmeeting.location, null, 3))
           ///////////  add a location to result   /////////////////////
@@ -501,6 +546,16 @@ var meetingStorage = {
   
   <!-- Add "scoped" attribute to limit CSS to this component only -->
   <style >
+  .file-location{
+    background: rgb(192, 156, 156);
+    border: 1px solid black;
+    border-radius: 5px;
+  }
+  textarea{
+    width: 80%;
+    padding: 10px;
+    margin: 0 30px;
+  }
   .group-error{
     border: 1px solid red;
     background: #f33;
@@ -523,6 +578,7 @@ var meetingStorage = {
     justify-content: space-evenly;
     padding: 10px;
     margin: 5px;
+    flex-wrap: wrap;
   }
   .groups input,
   .groups select{
@@ -530,6 +586,7 @@ var meetingStorage = {
     padding: 2px 5px;
     font-size: 2em;
     border-radius: 5px;
+    max-width: 90%;
   }
   .group-options{
     display: flex;
@@ -587,5 +644,8 @@ var meetingStorage = {
       grid-gap: 10px;
     }
 } */
+.radio-inline input{
+  font-size: 2rem;
+}
   </style>
   

@@ -127,9 +127,30 @@ console.log(`mapped meetings: ${JSON.stringify(meetings.slice(0,1), null, 3)}`)
         return MeetingGuideFormat(meeting,location)
       },
       geofind(miles,homelat,homelng){
-        var foundLocations = globalLocations.filter(x => distance(homelat,homelng,x.lat,x.lng) < miles);
+        console.log(`MeetingGuide.js: geoFind:`)
+        // var test_miles = 2;
+        var foundLocations = globalLocations.filter(x => 
+          {
+            var dist = distance(homelat,homelng,x.lat,x.lng);
+            if (dist < miles){
+              x.dist = dist; // store dist for dups
+           }
+           return dist < miles;
+
+          //  return dist < miles;
+          });
+        // remove duplicate locations i.e. if any location is < .01 
+        foundLocations = dups(foundLocations);
+        // var myfound = foundLocations.filter(x => x.id == 18422)
+        // if (myfound.length > 0){
+        //   console.log(JSON.stringify(myfound));
+
+        // }
+        console.log(`after dups: foundLocations length= ${foundLocations.length}`)
         var arrayOfLocIds = foundLocations.map(x => x.id);
+        // console.log(`after dups: arrayOfLocIds length= ${arrayOfLocIds.length} ${arrayOfLocIds}`)
         var foundMeetings = globalMeetings.filter(x => arrayOfLocIds.includes(x.locid));
+        console.log(`after dups: foundMeetings length= ${foundMeetings.length}`)
         return foundMeetings.map(x => {
             const loc = foundLocations.find(x2 => x2.id == x.locid);
             return MeetingGuideFormat(x,loc)
@@ -137,6 +158,53 @@ console.log(`mapped meetings: ${JSON.stringify(meetings.slice(0,1), null, 3)}`)
       },// end geofind
     }
   };
+
+  function dups(locations){
+    console.log(`find dups in ${locations.length}`)
+    // store dist on each location
+    // sort by distance
+    var distLocs = locations.sort((a,b) => {
+      var a1 = a.dist;
+      var b1 = b.dist;
+      return a1-b1
+    })
+    // console.log(`locations:sorted: ${JSON.stringify(distLocs.slice(0,4),null,3)}`)
+    // remove dups
+    // print all below .01
+    console.log(`chking for dups locations: ${distLocs.length}`)
+    var lastDist = 100;
+    // console.log(`sample locations for test: ${JSON.stringify(distLocs.slice(0,11),null,3)}`);
+    distLocs.forEach((x,i) => {
+      if (i > 0){
+        if (Math.abs(x.dist - lastDist)  < 0.001){
+          // console.log(`Dup found: dist < .01 num=${i}.  lastDist= ${lastDist} *** ${x.dist}`)
+          // console.log(`dist < .01 lastDist= ${lastDist} *** ${JSON.stringify(x,null,3)}`)
+          x.dup = true;
+        } else {
+          x.dup = false;
+        }
+      }
+      lastDist = x.dist;
+    })
+    var dupsFound = distLocs.filter(x => x.dup);
+
+    console.log(`ck dist on found locations: ${dupsFound.length}`)
+    // console.log(`ck dist on found locations: ${JSON.stringify(dupsFound)}`)
+    
+    // console.log(`ck dist on found locations: ${JSON.stringify(locations[1])}`)
+
+    var foundid = []
+    distLocs = distLocs.sort((a,b) => {
+      var a1 = a.lat;
+      var b1 = b.lat;
+      return a1-b1
+    })
+    console.log(`dups: before removing dups len=${distLocs.length}`);
+    distLocs = distLocs.filter((x,i,arr) => !x.dup)
+    console.log(`dups: after removing dups returning len=${distLocs.length}`);
+    return distLocs;
+  }
+
   function getSlugs(list){
     let slugId = 0;
     let lastSlug = '';

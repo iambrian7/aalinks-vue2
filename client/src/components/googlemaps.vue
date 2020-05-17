@@ -12,13 +12,18 @@
 </div>
 </template>
 <script>
+import image from "@/assets/marker-icon-2x.png"
 export default {
-    props: ['locations'],
+    // props: ['locations'],
 	data() {
 		return {
             map : null,
             markers: [],
+            locationsToMap: [],
             lastInfoWindow: null,
+            homeInfoWindow: null,
+            locations: [],
+            home: null
           //  selectedMeeting: this.$store.getters.getSelectedMeeting
     }
   },
@@ -64,13 +69,18 @@ export default {
             initMap: function(){
 
                 var position =  {lat: 44.9169913, lng: -93.4435269}; // default position for map
-                if (this.locations.length){
-                    var propLocation = this.locations[0];
-                    console.log(`initMap: propLocation = ${JSON.stringify(propLocation,null,3)}`)
+
+                // if (!Array.isArray(this.locations)){
+                //     this.locationsToMap.push(this.locations)
+                // }
+                if (this.locationsToMap.length){
+                    var propLocation = this.locationsToMap[0];
+                    // var propLocation = this.locations[0];
+                    // console.log(`initMap: propLocation = ${JSON.stringify(propLocation,null,3)}`)
                     position = {lat:propLocation.loc.coordinates[1],lng:propLocation.loc.coordinates[0]}
-                console.log(`initMap: locations = ${JSON.stringify(this.locations[0],null,3)}`)
+                // console.log(`initMap: locations = ${JSON.stringify(this.locationsToMap[0],null,3)}`)
                 } else {
-                    console.log('initMap: locations undefined***************************************')
+                    // console.log('initMap: locations undefined***************************************')
                 }
 
                 this.map = new google.maps.Map(document.getElementById('my-map'), {
@@ -128,6 +138,47 @@ export default {
             if (day) content+="</dl>" // finish up last dl tag
         return content
         },
+        makeHomeMarker(home){
+            console.log(`makeHomeMarker: address=${home.address} lat=${home.lat} lng=${home.lng}`)
+                var latlng = new google.maps.LatLng(home.lat, home.lng);
+                var marker = new google.maps.Marker({
+                    position: latlng,
+                    map: this.map,
+                    // id: m.location_id,
+                    // icon: 'https://maps.google.com/mapfiles/kml/paddle/grn-blank.png',
+                    // icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                    icon: image,  //'./assets/marker-icon-2x.png',
+                    animation: google.maps.Animation.DROP,
+                    // title: home.address
+                    title: `Home Location: ${home.address}`
+                });
+                marker.content = '<h3>' + 'Home Marker' + '</h3>' + "<div class='infoWin'>" +  home.address +
+                '<br /> ' + home.city + ', MN ' + '</div>';
+                // marker.content = marker.content + this.newMarkerContent(m.meetings);
+                marker.content = "<div class='top-info-window'>" + marker.content + "</div>";
+                // marker.addListener('mouseover', function() {
+                //     console.log('mouseover home marker')
+                //     infowindow.open(map, this);
+                // });
+
+                // assuming you also want to hide the infowindow when user mouses-out
+                // marker.addListener('mouseout', function() {
+                //     infowindow.close();
+                // });
+                google.maps.event.addListener(marker, 'click', (function (mark) {
+                return function () {
+                    if (self.lastInfoWindow)
+                    self.lastInfoWindow.close();
+                    else
+                    self.lastInfoWindow = new google.maps.InfoWindow();
+                    var infowindow = new google.maps.InfoWindow({ maxWidth: 200});
+                    infowindow.setContent(mark.content);
+                    infowindow.open(this.map, mark);
+                    self.lastInfoWindow = infowindow;
+                    }
+                    })(marker));
+            return marker;
+        },
         makeNewMarkers:function(locations){
             // always delete all markers
             // debugger
@@ -136,14 +187,16 @@ export default {
                 m.setMap(null);
             })
             this.markers = [];
+            // add home marker
+            this.markers.push(this.makeHomeMarker(this.home));
             if (!locations || locations.length == 0){
                 console.log("no locations to mark")
                 return; // no locations so remove all markers
             } 
-            if (Object.keys(locations).length == 0) {
-                console.log("no locations to mark")
-                return;
-            }
+            // if (Object.keys(locations).length == 0) {
+            //     console.log("no locations to mark")
+            //     return;
+            // }
             var self = this
             locations.forEach(m => {
                 var lat = m.loc.coordinates[1]
@@ -189,7 +242,8 @@ export default {
         },
    },
    watch: {
-    locations: {
+    storedLocations: {
+    // locations: {
        handler(val){
             // if (typeof locations !== 'undefined'){
             //         position = {lat:propLocation.loc.coordinates[1],lng:propLocation.loc.coordinates[0]}
@@ -200,22 +254,41 @@ export default {
             //         console.log('initMap: locations undefined***************************************')
             //     }
         //    console.log(`locations changed ${JSON.stringify(val)}`)
-           console.log(`locations changed number= ${Object.keys(val).length}`)
-        this.makeNewMarkers(val);
+           console.log(`locations changed number= ${val.length}`)
+           if (this.map){
+               this.makeNewMarkers(val);
+           }
         },
         deep: true
     },
    },
   computed: {
+      storedLocations: function(){
+          return this.$store.state.meetings.locations;
+      }
   },
+    created(){
+        // debugger
+      console.log("created meetings..........")
+    },
   mounted: function(){
-      var self = this;
-      console.log(`mounted: locations: ${JSON.stringify(this.locations, null, 3)}`)
-      this.initMap();
-      this.makeNewMarkers(this.locations);
+    //   debugger
+    var self = this;
+    //   console.log(`mounted: locations: ${JSON.stringify(this.locations, null, 3)}`)
+    this.home = this.$store.state.meetings.home;// home marker is green
+    const locs = this.$store.state.meetings.locations;;// this.storedLocations;
+    if (!Array.isArray(this.locations)){
+        var firstKey = Object.keys(this.locations)[0];
+        this.locationsToMap.push(this.locations[firstKey])
+    } else {
+        this.locationsToMap = this.locations;
+    }
+    this.initMap();
+    this.makeNewMarkers(locs);
+//   this.makeNewMarkers(this.locationsToMap);
       this.$store.watch(
             function (state) {
-                return state.selectedMeeting;
+                return state.meetings.selectedMeeting;
             },
             function (val) {
                 //do something on data change
@@ -231,7 +304,7 @@ export default {
         );
   },
   updated:function(){
-      this.makeNewMarkers(this.locations);
+      this.makeNewMarkers(this.locationsToMap);
   }
 }
 
@@ -263,6 +336,13 @@ export default {
 }
     .gm-style-iw {padding: 0; margin: 0; border: 1px solid grey; background: #eee;}
     .infowin { background: yellow;}
+    .top-info-window:hover,
+    .infowin:hover {
+        border: 1px solid black;
+        background: hotpink;
+        padding: 1.2em;
+        width: 100px;
+    }
 
     #panel {    
         position: relative;    

@@ -28,6 +28,7 @@ function distance(lat1, lon1, lat2, lon2, unit) {
 
 export default {
   state: {
+    testcnt: 0,
     meetings: [],
     meeting: null,
     newLocation: {"name":"Turning Point","lat":30.225,"lng":-92.011,"address":"210 Eighth St, Lafayette, LA 70501, USA"},
@@ -43,25 +44,45 @@ export default {
     startMiles: 50,
     lat: 44.92707,
     lng: -93.44791,
+    home: {
+      lat: 44.917042,
+      lng: -93.443947,
+      address: '12913 Pioneer Rd.',
+      city: 'Minnetonka',
+      state: 'MN'
+    },
     viewMeeting: null,
     selectedMeeting: null,
     addMeeting: null,
-    locations: null
+    locations: [],
+    dupLocations: [],
+    dupLocation: null
   },
   getters: {
+    getDupLocation: state => {
+      console.log(`getters: getDupLocation = ${state.dupLocation}`)
+      if (state.dupLocation){
+        return state.dupLocation
+      } else {
+        return {name: 'location not defined'}
+      }
+    },
+    getDupLocations: state => {
+      return state.dupLocations
+    },
     getLocation: (state) => (location) => {
       var newMeetings = state.meetings.filter(x => {
         return (0.1 > distance(location.lat,location.lng,x.loc.coordinates[1],x.loc.coordinates[0])) 
       })
-      console.log(`store: getLocation: found ${newMeetings.length}`)
+      // console.log(`store: getLocation: found ${newMeetings.length}`)
       return newMeetings
 
     },
   
     getLocationMeetings: (state) => (id) => {
       var newMeetings = state.meetings.filter(x => x.location_id == id);
-      console.log(`getLocationMeetings: found meetins with locid=${id}`)
-      console.log(`getLocationMeetings: newMeetings len = ${newMeetings.length}`)
+      // console.log(`getLocationMeetings: found meetins with locid=${id}`)
+      // console.log(`getLocationMeetings: newMeetings len = ${newMeetings.length}`)
       var loc = {};
       // get all meetings at locid
       newMeetings.forEach(function(m){
@@ -87,7 +108,7 @@ export default {
                 }
                 loc[m.location_id].meetings.push(meeting) 
         })// end of new
-        console.log(`getLocationMeetings: found at ${JSON.stringify(loc,null,3)}`)
+        // console.log(`getLocationMeetings: found at ${JSON.stringify(loc,null,3)}`)
 
         return loc;
     },
@@ -106,28 +127,37 @@ export default {
     getAllMeetings: state => {
       return state.meetings
     },
+    getAllLocations: state => {
+      // console.log(`getAllLocations: ${state.locations.length}`)
+      return state.locations
+    },
     getMeetingById: (state) => (id) => {
       return state.meetings.find(x => x.id === id)
     },
     getFilteredMeetings: (state) => {
     // getFilteredMeetings: (state) => (options) => {
     // debugger
+    // console.log(`getFilteredMeetings: ${state.meetings.length}`)
     var day = state.filters.day //|| 7
     var picked = state.filters.picked
     var mileMax = state.filters.mileMax
-
+    
     var lat = state.filters.lat
     var lng = state.filters.lng
-      var newMeetings = state.meetings.filter(function(m){
-        return ((mileLimit(m,mileMax,lat,lng)) &&
-                 (day == 7 || day == m.day) &&
-                (!picked || m.types.includes(picked))
-                 )
-     })
-     return newMeetings
-    }
-  },
+    var newMeetings = state.meetings.filter(function(m){
+      return ((mileLimit(m,mileMax,lat,lng)) &&
+      (day == 7 || day == m.day) &&
+      (!picked || m.types.includes(picked))
+      )
+    })
+    // console.log(`getFilteredMeetings:newMeetings ${newMeetings.length}`)
+    return newMeetings
+  }
+},
   mutations: {
+    testcnt: (state, payload) => {
+      state.testcnt = payload;
+    },
     getAMeeting: (state, meeting) => {
       state.meeting = meeting
     },
@@ -143,6 +173,12 @@ export default {
     },
     setViewMeeting: (state, meeting ) => {
       state.viewMeeting = meeting
+    },
+    getDupLocations: (state, locations ) => {
+      state.dupLocations = locations
+    },
+    getDupLocationId: (state, location ) => {
+      state.dupLocation = location
     },
     locations: (state, loc ) => {
       state.locations = loc;
@@ -190,6 +226,20 @@ export default {
       ////////////   get meetings from mongodb (1047 max)
       // console.log(`gotAllMeetings: ${JSON.stringify(res.data[0],null,3)}`)
       commit('getAllMeetings', res.data)
+    },
+    getDupLocations: async ({ commit, state }) => {
+      
+      var res = await axios.get(`http://localhost:8086/api/locations/`)
+      console.log(`store:axios:getDupLocation: len=: ${res.data.length}`)
+  
+      commit('getDupLocations', res.data)
+    },
+    getDupLocationId: async ({ commit }, id ) => {
+      console.log(`store:meetings:getDupLocationId: ${id}`)
+      var res = await axios.get(`http://localhost:8086/api/locations/${id}`)
+      
+      console.log(`store:from axios:getDupLocationId: ${id}`)
+      commit('getDupLocationId', res.data)
     },
     getAMeeting: async ({ commit, state }) => {
       

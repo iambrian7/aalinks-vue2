@@ -8,9 +8,16 @@ const md = MeetingGuide();
 
 
 
+router.get('/locations/:id', function(req, res, next) {
+  console.log(`get locations............req.params.id: ${req.params.id}`)
+  const location = md.globalLocations.filter(x => x.id == req.params.id)
+  console.log(`found location:${req.params.id} name: ${location.name}`)
+  res.status(200).json(location);
+});
+
 router.get('/locations', function(req, res, next) {
-  console.log("get locations............")
-  const locations = md.globalLocations.slice(0,10)
+  console.log("get locations............all locations")
+  const locations = md.globalLocations.slice(0,9)
   res.status(200).json(locations);
 });
 router.get('/onlymeetings', function(req, res, next) {
@@ -30,7 +37,7 @@ router.get('/meetingsx', function(req, res, next) {
   if (miles == undefined) {
     miles = 3000;
   }
-  console.log("got miles= " + miles + " lat=" + lat + " lng=" + lng)
+  console.log("/mmetingsx: got miles= " + miles + " lat=" + lat + " lng=" + lng)
   const mymeetings = md.geofind(50,lat,lng);
   res.status(200).json(mymeetings)
 });

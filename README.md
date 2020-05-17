@@ -16,7 +16,7 @@ Follow these steps at the command line:
 
 ### 1. Run the solution
 ```bash
-npm run dev
+yarn serve
 open new command window
 cd server
 npm start

@@ -4,6 +4,7 @@ import Hello from '@/components/Hello'
 import Meetings from '@/components/meetings'
 import addSimpleMeeting from '@/components/addSimpleMeeting'
 import MeetingsList from '@/components/meetinglist'
+import Test from '@/components/test'
 import Donate from '@/components/Donate2'
 import AMeeting from '@/components/ameeting'
 import ThankYou from '@/components/ThankYou'
@@ -57,6 +58,11 @@ export default new Router({
       path: '/meetinglist',
       name: 'MeetingList',
       component: MeetingsList
+    },
+    {
+      path: '/test',
+      name: 'Test',
+      component: Test
     },
     {
       path: '/meeting/:id',

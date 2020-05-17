@@ -56,7 +56,8 @@
         <meeting-list :meetings="filteredMeetings"></meeting-list>
       </div>
       <div class="aaflex-map" v-if="mapOpen">
-        <google-map :locations="$store.state.meetings.locations"></google-map>
+        <google-map></google-map>
+        <!-- <google-map :locations="$store.state.meetings.locations"></google-map> -->
         <!-- <google-map :locations="newlocations"></google-map> -->
       </div>
    </div>
@@ -73,13 +74,13 @@ var geocoder = new google.maps.Geocoder();
     geocoder.geocode({'location': latlng}, function(results, status) {
       //  geocoder.geocode({ 'address': search }, function (results, status) {
         if (status === google.maps.GeocoderStatus.OK) {
-          console.log(results[0].geometry.location.lat());
+          // console.log(results[0].geometry.location.lat());
                 //   Aalinks.coords = position.coords;
                 obj.lat = results[0].geometry.location.lat()
                 obj.lng = results[0].geometry.location.lng()
       
                 obj.formatted_address = results[0].formatted_address;
-                  console.log('load map at ' +  obj.formatted_address);
+                  // console.log('load map at ' +  obj.formatted_address);
                   callback(obj)
                 return obj;
               }
@@ -94,13 +95,13 @@ var geocoder = new google.maps.Geocoder();
     var obj = {};
     geocoder.geocode({ 'address': search }, function (results, status) {
               if (status === google.maps.GeocoderStatus.OK) {
-                  console.log(results[0].geometry.location.lat());
+                  // console.log(results[0].geometry.location.lat());
                 //   Aalinks.coords = position.coords;
                 obj.lat = results[0].geometry.location.lat()
                 obj.lng = results[0].geometry.location.lng()
       
                 obj.formatted_address = results[0].formatted_address;
-                  console.log('load map at ' +  obj.formatted_address);
+                  // console.log('load map at ' +  obj.formatted_address);
                   callback(obj)
                 return obj;
               }
@@ -191,12 +192,12 @@ export default {
               var lat = this.$store.state.meetings.filters.lat
               var lng = this.$store.state.meetings.filters.lng
                // geocoder.geocode({'location': latlng}, function(results, status) {
-                 console.log("latlng located at: " + lat + ':' + lng)
+                //  console.log("latlng located at: " + lat + ':' + lng)
               var latlng = {lat: parseFloat(lat), lng: parseFloat(lng)};
                  
               aalinksGeolocateLatLng(latlng,function(data){
                // debugger
-                    console.log("latlng located at: " + JSON.stringify(data.formatted_address))
+                    // console.log("latlng located at: " + JSON.stringify(data.formatted_address))
                     self.baselocation = data.formatted_address;
               });
             }
@@ -205,7 +206,7 @@ export default {
     filteredMeetings: function(){
     var self = this;
       var newMeetings = this.$store.getters.getFilteredMeetings
-      console.log(`meetings:filteredMeetings: newMeetings found: ${newMeetings.length}`)
+      // console.log(`meetings:filteredMeetings: newMeetings found: ${newMeetings.length}`)
       newMeetings.sort(function (a, b) {
         // ******************** first sort days
         var nameA = a.day;
@@ -259,7 +260,8 @@ export default {
         Object.keys(loc).forEach(x =>{
           locationsArray.push(loc[x])
         });
-        console.log(`locationsArray=${JSON.stringify(locationsArray, null, 3)}`)
+        // console.log(`locationsArray=${locationsArray.length}`)
+        // console.log(`locationsArray=${JSON.stringify(locationsArray, null, 3)}`)
         // set the locations in the store
         this.$store.dispatch("locations", locationsArray)
         // this.$store.dispatch("locations", loc)

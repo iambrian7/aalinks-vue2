@@ -5,7 +5,7 @@
       <router-link to="/" class="aalinks-title">aalinks-vue</router-link>
       <router-link to="/meetings" @click="isOpen = false">Meetings</router-link>
       <router-link to="/addmeeting">New Meetings</router-link>
-      <router-link to="/meetinglist">Meeting List</router-link>
+      <router-link to="/test">Test</router-link>
       <router-link to="/donate">Donate</router-link>
       <router-link to="/responsiveform">Contact</router-link>
 

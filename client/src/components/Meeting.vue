@@ -11,11 +11,21 @@
           <span class="meeting-list-name">
             {{ meets.name }}
           </span>
+          <button class="dups-check" @click="dups = !dups">
+            Dups
+          </button>
       </div>
     </div>
-    <div class="google-map-container">
-       <google-map :locations="$store.state.locations"></google-map>
-       <!-- <google-map :locations="newlocations"></google-map> -->
+    <div class="dup-check" v-if="dups">
+      <h3>Dups</h3>
+      <div class="location" v-for="(dup, i) in duplocations" :key="i">
+      
+        <h5> {{dup.loc.coordinates}}  {{ dup.location}}</h5>
+      </div>
+    </div>
+    <div class="google-map-container" v-else>
+       <!-- <google-map :locations="$store.state.locations"></google-map> -->
+       <google-map :locations="newlocations"></google-map>
     </div>
       <!-- end meeting-container -->
     </div>
@@ -32,25 +42,37 @@ export default {
     return {
       msg: `Welcome to `,
       meeting: {},
-      newlocations: {}
+      newlocations: {},
+      dups: false
     }
   },
    components: {
           "google-map": GoogleMap
     },
   computed: {
+    duplocations(){
+      var x = this.$store.getters.getAllLocations;
+      var sortkey = 'lng'
+      x = x.sort((a,b) => {
+      var a1 = a.loc.coordinates[0];
+      var b1 = b.loc.coordinates[0];
+      return a1-b1
+    })
+      console.log(`dup locations = ${x.length}`)
+      return x;
+    },
     meets(){
         var x = this.$store.getters.getViewMeeting;
       if (!x){
         console.log(`meetingspath: ${this.meetingspath}`)
         console.log(`$route meetingspath: ${this.$route.params.meetingpath}`)
         x = this.$store.getters.getMeetingById( this.$route.params.id*1)
-          console.log(`meets from store ${JSON.stringify(x,null,3)}`)
+          // console.log(`meets from store ${JSON.stringify(x,null,3)}`)
         if (!x){
           x = {name:"waiting for meeting"}
         }
        }
-      console.log(`meets computed at ${JSON.stringify(x,null,3)}`)
+      // console.log(`meets computed at ${JSON.stringify(x,null,3)}`)
 
      this.newlocations = this.$store.getters.getLocationMeetings(x.location_id);
 

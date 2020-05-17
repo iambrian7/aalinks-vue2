@@ -49,6 +49,10 @@ export default {
 </script>
 
 <style>
+body{
+  padding: 0;
+  margin: 0;
+}
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -94,7 +98,7 @@ img.bg {
 }
 .parallax {
     /* The image used */
-    background-image: url("/static/NorthCarolinaSunrise.jpg");
+    /* background-image: url("/static/NorthCarolinaSunrise.jpg"); */
 
     /* Set a specific height */
     /* min-height: 100vh;  */
